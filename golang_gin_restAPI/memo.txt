@@ -1,0 +1,79 @@
+
+go get -u github.com/gin-gonic/gin
+
+ginのドキュメント
+https://pkg.go.dev/github.com/gin-gonic/gin#Context
+
+type Context struct {
+	Request *http.Request
+	Writer  ResponseWriter
+
+	Params Params
+
+	// Keys is a key/value pair exclusively for the context of each request.
+	Keys map[string]any
+
+	// Errors is a list of errors attached to all the handlers/middlewares who used this context.
+	Errors errorMsgs
+
+	// Accepted defines a list of manually accepted formats for content negotiation.
+	Accepted []string
+	// contains filtered or unexported fields
+}
+
+type ResponseWriter interface {
+	http.ResponseWriter
+	http.Hijacker
+	http.Flusher
+	http.CloseNotifier
+
+	// Status returns the HTTP response status code of the current request.
+	Status() int
+
+	// Size returns the number of bytes already written into the response http body.
+	// See Written()
+	Size() int
+
+	// WriteString writes the string into the response body.
+	WriteString(string) (int, error)
+
+	// Written returns true if the response body was already written.
+	Written() bool
+
+	// WriteHeaderNow forces to write the http header (status code + headers).
+	WriteHeaderNow()
+
+	// Pusher get the http.Pusher for server push
+	Pusher() http.Pusher
+}
+
+func (c *Context) IndentedJSON(code int, obj any)
+IndentedJSON serializes the given struct as pretty JSON (indented + endlines) into the response body. 
+It also sets the Content-Type as "application/json". 
+WARNING: we recommend using this only for development purposes since printing pretty JSON is more CPU and bandwidth consuming. 
+Use Context.JSON() instead.
+
+func (c *Context) Param(key string) string
+Param returns the value of the URL param. It is a shortcut for c.Params.ByName(key)
+router.GET("/user/:id", func(c *gin.Context) {
+    // a GET request to /user/john
+    id := c.Param("id") // id == "/john"
+    // a GET request to /user/john/
+    id := c.Param("id") // id == "/john/"
+})
+
+c.GetRawData()
+func (c *Context) GetRawData() ([]byte, error) {
+	return io.ReadAll(c.Request.Body)
+}
+
+func (*Context) String ¶
+func (c *Context) String(code int, format string, values ...any)
+String writes the given string into the response body.
+
+func (*Context) Header ¶
+func (c *Context) Header(key, value string)
+Header is an intelligent shortcut for c.Writer.Header().Set(key, value). 
+It writes a header in the response. 
+
+
